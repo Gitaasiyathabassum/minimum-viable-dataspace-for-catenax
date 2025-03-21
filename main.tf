@@ -149,23 +149,24 @@ source = "git::https://github.com/terraform-aws-modules/terraform-aws-kms.git?re
   
   # Add this to explicitly grant permission to the EKS cluster role
   key_statements = [
-    {
-      sid    = "AllowEKSClusterUse"
-      effect = "Allow"
-      principals = [{
-        type        = "AWS"
-        identifiers = [module.eks.cluster_iam_role_arn]
-      }]
-      actions = [
-        "kms:Encrypt",
-        "kms:Decrypt",
-        "kms:ReEncrypt*",
-        "kms:GenerateDataKey*",
-        "kms:DescribeKey"
-      ]
-      resources = ["*"]
-    }
-  ]
+  {
+    sid    = "AllowEKSClusterUse"
+    effect = "Allow"
+    principals = [{
+      type        = "AWS"
+      identifiers = [module.eks.cluster_iam_role_arn]  # Validate this value
+    }]
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
+    ]
+    resources = ["*"]
+  }
+]
+
 
   tags = local.tags
 }
