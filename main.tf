@@ -133,8 +133,7 @@ module "eks" {
 }
 
 module "ebs_kms_key" {
-
-  source = "git::https://github.com/terraform-aws-modules/terraform-aws-kms.git?ref=fe1beca2118c0cb528526e022a53381535bb93cd"  # commit hash of version 3.1.0
+source = "git::https://github.com/terraform-aws-modules/terraform-aws-kms.git?ref=fe1beca2118c0cb528526e022a53381535bb93cd"  # commit hash of version 3.1.0
 
   aliases     = ["eks/${local.name}/ebs"]
   description = "Customer managed key to encrypt EKS managed node group volumes"
@@ -143,9 +142,29 @@ module "ebs_kms_key" {
     "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/Admin"
   ]
 
+  # Modified this section
   key_service_roles_for_autoscaling = [
-    "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
-    module.eks.cluster_iam_role_arn,
+    "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+  ]
+  
+  # Add this to explicitly grant permission to the EKS cluster role
+  key_statements = [
+    {
+      sid    = "AllowEKSClusterUse"
+      effect = "Allow"
+      principals = [{
+        type        = "AWS"
+        identifiers = [module.eks.cluster_iam_role_arn]
+      }]
+      actions = [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+      resources = ["*"]
+    }
   ]
 
   tags = local.tags
